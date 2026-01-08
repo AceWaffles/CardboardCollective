@@ -1,0 +1,20 @@
+{
+  "defaults": {
+    "spots": 75,
+    "platform": {
+      "name": "whatnot",
+      "feeRate": 0.12,
+      "txFee": 0.30
+    },
+    "shipping": {
+      "mode": "perSpot",
+      "perSpot": 5.0
+    },
+    "supplies": {
+      "perSpot": 0.2
+    }
+  },
+    "showBoard": {
+      "forumChannelId": "1458512589922369759"
+  }  
+}

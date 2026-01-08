@@ -1,0 +1,21 @@
+[
+  {
+    "showId": "MW-2026-001",
+    "guildId": "123",
+    "ownerId": "DISCORD_USER_ID",
+    "threadId": "FORUM_THREAD_ID",
+    "firstMessageId": "THREAD_FIRST_MESSAGE_ID",
+
+    "title": "Midnight Sons x3",
+    "whenIso": "2026-01-10T21:00:00-05:00",
+    "tags": ["Marvel", "Wheel"],
+    "format": "Wheel + 12-char auction",
+    "spots": 125,
+    "link": "https://whatnot.com/s/PGSvVl6F",
+    "notes": "Chaser added",
+
+    "status": "Scheduled",
+    "createdUtc": "2026-01-07T17:32:10Z",
+    "updatedUtc": "2026-01-07T17:35:00Z"
+  }
+]

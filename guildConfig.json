@@ -1,0 +1,7 @@
+{
+  "guildId": "123",
+  "forumChannelId": "FORUM_CHANNEL_ID",
+  "dashboardChannelId": "TEXT_CHANNEL_ID",
+  "dashboardMessageId": "PINNED_MESSAGE_ID",
+  "timezone": "America/New_York"
+}
