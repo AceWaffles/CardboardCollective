@@ -284,12 +284,38 @@ function createShowBoardFeature({ config }) {
             } catch {}
             return true;
           }
+          
+          console.log("showBoard forumChannelId:", forumChannelId, "guild:", message.guild.id);
+          let forumChannel = message.guild.channels.cache.get(forumChannelId);
 
-          const forumChannel = await message.guild.channels.fetch(forumChannelId);
-          if (!forumChannel || forumChannel.type !== 15 /* GuildForum */) {
+          if (!forumChannel) {
+            try {
+              forumChannel = await message.guild.channels.fetch(forumChannelId);
+            } catch (err) {
+              console.error("❌ Forum channel fetch failed", {
+                forumChannelId,
+                code: err?.code,
+                status: err?.status,
+                message: err?.rawError?.message || err?.message,
+                guildId: message.guild.id,
+                guildName: message.guild.name
+              });
+
+              await pruneTrail(message.channel, existing.messageIds);
+              try {
+                await message.author.send(
+                  "🧠🥞 I can’t access the Forum channel I’m configured to use.\n" +
+                  "It may be deleted, the ID may be wrong, or I don’t have permission to view it."
+                );
+              } catch {}
+              return true;
+            }
+          }
+
+          if (forumChannel.type !== 15 /* GuildForum */) {
             await pruneTrail(message.channel, existing.messageIds);
             try {
-              await message.author.send("🧠🥞 Forum channel ID is invalid or not a Forum channel.");
+              await message.author.send("🧠🥞 Configured channel is not a Forum channel.");
             } catch {}
             return true;
           }
@@ -319,21 +345,50 @@ function createShowBoardFeature({ config }) {
 
               // Build thread URL
               threadUrl = `https://discord.com/channels/${message.guild.id}/${created.threadId}`;
-            } else {
-              action = "Updated";
+            }  else {
+                action = "Updated";
 
-              // Fetch thread and update
-              const thread = await forumChannel.threads.fetch(record.threadId);
-              if (!thread) throw new Error("Thread not found (may have been deleted).");
+                // Fetch thread and update (repair if missing)
+                let thread = forumChannel.threads.cache.get(record.threadId);
 
-              await updateForumPost(thread, record.firstMessageId, existing.data);
+                if (!thread) {
+                  try {
+                    thread = await message.client.channels.fetch(record.threadId);
+                  } catch {
+                    thread = null;
+                  }
+                }
 
-              // Update stored data
-              Object.assign(record, existing.data, { updatedUtc: new Date().toISOString() });
-              saveShows(store);
+                if (!thread) {
+                  // Stale record (deleted thread / wrong id / permissions) => recreate
+                  console.warn("⚠️ Stored thread missing; recreating show post", {
+                    ownerId: record.ownerId,
+                    threadId: record.threadId,
+                    forumChannelId: forumChannelId,
+                    guildId: message.guild.id
+                  });
 
-              threadUrl = `https://discord.com/channels/${message.guild.id}/${record.threadId}`;
-            }
+                  const created = await createForumPost(forumChannel, existing.data);
+
+                  // overwrite the existing record with the new thread ids
+                  record.threadId = created.threadId;
+                  record.firstMessageId = created.firstMessageId;
+
+                  Object.assign(record, existing.data, { updatedUtc: new Date().toISOString() });
+                  saveShows(store);
+
+                  threadUrl = `https://discord.com/channels/${message.guild.id}/${created.threadId}`;
+                  action = "Recreated"; // optional: makes receipt clearer
+                } else {
+                  // We found it => normal update
+                  await updateForumPost(thread, record.firstMessageId, existing.data);
+
+                  Object.assign(record, existing.data, { updatedUtc: new Date().toISOString() });
+                  saveShows(store);
+
+                  threadUrl = `https://discord.com/channels/${message.guild.id}/${record.threadId}`;
+                }
+              }
 
             // DM receipt (best effort)
             try {
