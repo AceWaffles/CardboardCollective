@@ -16,5 +16,14 @@
   },
     "showBoard": {
       "forumChannelId": "1458512589922369759"
-  }  
+  },
+    "listings": {
+    "tradeChannelId": "1462887007545196717",
+    "standardLimit": 3,
+    "proLimit": 10,
+    "proRoleName": "Collective Pro"
+  },
+  "hits": {
+    "hitsChannelId": "1462886854205509734"
+  } 
 }

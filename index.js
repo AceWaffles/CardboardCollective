@@ -20,6 +20,9 @@ const client = new Client({
 
 const { createBreakdownFeature } = require("./features/breakdown");
 const { createShowBoardFeature } = require("./features/showBoard");
+// ✅ New features
+const { createListingsFeature } = require("./features/listings");
+const { createHitsFeature } = require("./features/hits");
 
 // Load config
 const config = JSON.parse(fs.readFileSync("./config.json", "utf8"));
@@ -40,6 +43,8 @@ client.once("ready", () => console.log(`🧠🥞 READY: logged in as ${client.us
 // Register features
 const showBoard = createShowBoardFeature({ config });
 const breakdown = createBreakdownFeature({ config });
+const listings   = createListingsFeature({ config, client });
+const hits       = createHitsFeature({ config, client });
 
 client.on("messageCreate", async (message) => {
   // ✅ Route to features in order (Show board first)
@@ -48,14 +53,17 @@ client.on("messageCreate", async (message) => {
 
   const handledBreakdown = await breakdown.handleMessage(message);
   if (handledBreakdown) return;
-
+  if (await listings.handleMessage(message)) return;
+  if (await hits.handleMessage(message)) return;
   // fallback help for mw/mecha commands
   const lower = message.content.trim().toLowerCase();
   if (lower.startsWith("mw") || lower.startsWith("mecha")) {
     await message.reply(
       "🧠🥞 Commands:\n" +
       "• `mw show` (create/update your show card)\n" +
-      "• `mw breakdown 75 spots 3 boxes at 92 each`"
+      "• `mw breakdown 75 spots 3 boxes at 92 each`"+
+      "• `mw sell` (create a For Sale / Trade listing)\n" +
+      "• `mw hit` (post a hit highlight)"
     );
   }
 });
